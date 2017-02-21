@@ -1,0 +1,37 @@
+# Hazelcast with JCache annotations
+
+This sample demonstrates how you can use `Hazelcast` with the `javax.cache` annotations
+and yet keep access to the `Hazelcast` specific API.
+
+## The problem
+
+If you add `javax.cache:cache-api`, `spring-boot-starter-cache` and `hazeclast-spring` you
+have all the necessary dependencies to use `Hazelcast` as a cache store but both the
+`JCache` and the "`Spring`" implementations are available.
+
+Spring Boot promotes the use of `JCache` so if that's available we use that by default.
+
+Since `Hazelcast` has many other features that just caching, `Hazelcast` is generally
+supported (outside caching that is). A default setup with such classpath will lead to the
+following:
+
+1. `HazelcastAutoConfiguration` kicks-in and auto-configure a `HazelcastInstance` based on
+the configuration in `src/main/resources/hazelcast.xml`
+2. `CacheAutoConfiguration` kicks-in and chose the `JCache` flavour, this bootstraps a new
+`javax.cache.CacheManager` using the regular
+`Caching.getCachingProvider().getCacheManager()`
+3. For reasons yet to be determined, `Hazelcast` starts a second time rather than
+realising an `HazelcastInstance` for that configuration file exists
+
+## The solution
+
+There is no reason to go `JCache` if you don't want to use the API to configure your cache
+infrastructure. Spring Boot allows you to use the `javax.cache` annotations with any
+cache provider (as demonstrated in this sample).
+
+So the only thing you should do really is to force the use of `hazelcast` rather than
+`jcache` by adding the following to your configuration
+
+```
+spring.cache.type=hazelcast
+```
